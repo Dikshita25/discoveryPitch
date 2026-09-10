@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC Newsroom — Corporate Communications & Engagement Hub | DLS Prototype</title>
+<style>
+:root{
+  --green:#009E7E; --green-dark:#00795F; --green-deep:#008065;
+  --mint:#E9F6F2; --mint-soft:#F2FAF7;
+  --ink:#1E2A28; --grey:#5A6B67; --line:#E2E8E6; --page:#F7F9F8;
+  --card-r:10px; --shadow:0 1px 3px rgba(20,40,35,.08), 0 4px 14px rgba(20,40,35,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--ink);background:#fff;font-size:16px;line-height:1.55}
+img{max-width:100%;display:block}
+a{color:var(--green);text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+h1,h2,h3{line-height:1.2;font-weight:600}
+.eyebrow{color:var(--green);font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+
+/* ── Annotation layer (component provenance) ─────────── */
+#annoToggle{position:fixed;right:20px;bottom:20px;z-index:99;background:var(--ink);color:#fff;border:none;border-radius:999px;padding:12px 20px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#annoToggle span{color:#7EE3C8}
+.anno{display:none;font-size:12px;font-weight:600;color:#8A5A00;background:#FFF3D6;border:1px dashed #E0B54C;border-radius:6px;padding:6px 12px;margin:0 0 14px;width:max-content;max-width:100%}
+body.show-anno .anno{display:block}
+body.show-anno [data-comp]{outline:1.5px dashed #E0B54C;outline-offset:6px;border-radius:4px}
+
+/* ── Header (global) ─────────────────────────────────── */
+header{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:50}
+.nav{display:flex;align-items:center;gap:28px;height:64px}
+.logo{font-weight:800;font-style:italic;color:var(--green);font-size:26px;letter-spacing:-1px}
+.logo small{font-size:10px;font-style:normal;color:var(--grey);display:block;letter-spacing:0;font-weight:400}
+.nav .links{display:flex;gap:26px;margin-left:auto;font-size:15px;font-weight:500}
+.nav .links a{color:var(--ink)}
+.nav .links a:hover{color:var(--green)}
+.nav .util{display:flex;gap:14px;align-items:center}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.crumb{font-size:13px;color:var(--grey);padding:12px 0;border-bottom:1px solid var(--line);background:#fff}
+.crumb a{color:var(--green);font-weight:500}
+.crumb b{font-weight:400;color:var(--grey)}
+
+/* ── Buttons ─────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:10px;background:var(--green);color:#fff;font-weight:600;font-size:15px;padding:12px 22px;border-radius:6px;border:none;cursor:pointer;transition:background .15s}
+.btn:hover{background:var(--green-dark)}
+.btn.ghost{background:#fff;color:var(--green)}
+.btn.ghost:hover{background:var(--mint)}
+.btn.outline{background:transparent;border:1.5px solid #fff;color:#fff}
+.btn.outline:hover{background:rgba(255,255,255,.12)}
+.arrow{font-weight:400}
+
+/* ── Stats hero (from Certifications page) ───────────── */
+.hero{background:var(--green-deep);color:#fff;border-radius:0 0 48px 0;padding:56px 0 48px}
+.hero h1{font-size:40px;max-width:760px;margin-bottom:16px}
+.hero p.lede{max-width:820px;font-size:16.5px;opacity:.94;margin-bottom:34px}
+.hero .stats{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.28);border-bottom:1px solid rgba(255,255,255,.28);margin-bottom:34px}
+.hero .stat{padding:26px 12px;text-align:center;border-left:1px solid rgba(255,255,255,.28)}
+.hero .stat:first-child{border-left:none}
+.hero .stat b{display:block;font-size:42px;font-weight:300;letter-spacing:-1px}
+.hero .stat span{font-size:14px;opacity:.9}
+.hero .cta{display:flex;gap:14px;flex-wrap:wrap}
+
+/* ── Anchor tab bar (from PDP) ───────────────────────── */
+.tabbar{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:64px;z-index:40}
+.tabbar .wrap{display:flex;gap:6px;overflow-x:auto}
+.tabbar a{padding:15px 16px;font-size:14.5px;font-weight:500;color:var(--grey);border-bottom:3px solid transparent;white-space:nowrap}
+.tabbar a:hover,.tabbar a.on{color:var(--green);border-color:var(--green)}
+
+/* ── Sections ────────────────────────────────────────── */
+section{padding:56px 0}
+section.alt{background:var(--page)}
+section.mint{background:var(--mint)}
+.sec-head{max-width:820px;margin-bottom:34px}
+.sec-head h2{font-size:30px;margin-bottom:12px}
+.sec-head h2 em{color:var(--green);font-style:normal}
+.sec-head p{color:var(--grey)}
+
+/* ── Message cards (author-bio variation) ────────────── */
+.msg-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.msg-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);padding:28px;border-top:4px solid var(--green)}
+.msg-card .who{display:flex;gap:16px;align-items:center;margin-bottom:16px}
+.msg-card .face{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#BFE8DC,#7ECDB8);flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0B5A47;font-size:20px}
+.msg-card .who b{display:block;font-size:17px}
+.msg-card .who span{font-size:13.5px;color:var(--grey)}
+.msg-card p{font-size:15px;color:#33413E;margin-bottom:16px}
+.readmore{font-weight:600;font-size:14.5px}
+.pullquote{margin-top:34px;background:var(--mint);border-radius:var(--card-r);padding:34px 40px;position:relative}
+.pullquote:before{content:"\201C";position:absolute;left:22px;top:6px;font-size:64px;color:var(--green);font-family:Georgia,serif}
+.pullquote p{font-size:19px;font-weight:500;max-width:900px;margin:0 auto;text-align:center}
+.pullquote cite{display:block;text-align:center;margin-top:12px;color:var(--grey);font-style:normal;font-size:14px}
+
+/* ── SEMUI philosophy band (from Vision 2031 page) ───── */
+.semui{background:var(--page);border:1px solid var(--line);border-radius:var(--card-r);padding:40px;display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:center}
+.semui .glyph{text-align:center}
+.semui .glyph .kanji{font-size:64px;letter-spacing:.35em;font-weight:600;color:#2A3835}
+.semui .glyph .rom{letter-spacing:.5em;font-size:20px;color:var(--grey);margin-top:6px}
+.semui .glyph .lbl{font-size:12px;color:var(--green);text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px}
+.vision-quote{margin-top:26px;background:var(--mint);border-radius:var(--card-r);padding:38px;text-align:center}
+.vision-quote .lbl{font-weight:700;margin-bottom:4px}
+.vision-quote .sub{font-size:13.5px;color:var(--grey);margin-bottom:18px}
+.vision-quote blockquote{font-size:21px;font-weight:600;max-width:840px;margin:0 auto}
+.principles{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:34px}
+.pcol .ico{width:44px;height:44px;border-radius:10px;background:var(--mint);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.pcol b{display:block;font-size:16.5px;margin-bottom:6px}
+.pcol p{font-size:14px;color:var(--grey)}
+
+/* ── Horizontal timeline (from Awards page) ──────────── */
+.timeline{display:flex;gap:18px;overflow-x:auto;padding:16px 4px 22px;scroll-snap-type:x mandatory}
+.t-item{flex:0 0 235px;scroll-snap-align:start;position:relative;padding-top:26px}
+.t-item:before{content:"";position:absolute;top:8px;left:0;right:-18px;height:2px;background:var(--line)}
+.t-item:after{content:"";position:absolute;top:2px;left:0;width:14px;height:14px;border-radius:50%;background:var(--green);border:3px solid #fff;box-shadow:0 0 0 2px var(--green)}
+.t-item .yr{font-weight:700;color:var(--green);font-size:15px;margin-bottom:8px}
+.t-card{background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);padding:16px;font-size:13.5px;color:#33413E;min-height:110px}
+.t-card b{display:block;margin-bottom:4px;font-size:14px;color:var(--ink)}
+
+/* ── Card grids (from Operatory / category pages) ────── */
+.grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.cat-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);padding:22px;display:flex;flex-direction:column;gap:10px}
+.cat-card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.cat-card h3{font-size:16px}
+.cat-card .go{color:var(--green);font-size:18px;flex:none}
+.cat-card ul{list-style:none;font-size:13.5px;color:var(--grey)}
+.cat-card ul li{padding:3px 0 3px 14px;position:relative}
+.cat-card ul li:before{content:"•";position:absolute;left:0;color:var(--green)}
+
+/* ── Materiality numbered cards ──────────────────────── */
+.mat-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);padding:0;overflow:hidden;position:relative;transition:transform .15s;display:flex;flex-direction:column}
+.mat-card:hover{transform:translateY(-3px)}
+.mat-card .mthumb{aspect-ratio:16/9;position:relative;background:linear-gradient(135deg,#BFE8DC,#7ECDB8)}
+.mat-card .mthumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mat-card .mthumb .num{position:absolute;left:14px;bottom:10px;font-size:30px;font-weight:300;color:#fff;letter-spacing:-1px;text-shadow:0 1px 8px rgba(0,0,0,.45);z-index:2}
+.mat-card .mbody{padding:18px 20px 20px;position:relative;flex:1}
+.mat-card h3{font-size:15.5px;margin:0 26px 8px 0;min-height:42px;color:var(--green)}
+.mat-card p{font-size:13px;color:var(--grey)}
+.mat-card .go{position:absolute;right:18px;top:18px;color:var(--green);font-size:18px}
+
+/* ── Alternating editorial blocks (from Get Connected) ─ */
+.edit-block{display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:center;padding:44px 0;border-top:1px solid var(--line)}
+.edit-block:first-of-type{border-top:none}
+.edit-block.flip .media{order:2}
+.edit-block .tagline{font-size:12.5px;color:var(--green);font-weight:600;margin-bottom:8px}
+.edit-block h3{font-size:23px;margin-bottom:12px}
+.edit-block h3 .n{color:var(--green);font-weight:300;margin-right:10px}
+.edit-block ul{list-style:none;margin:14px 0 20px;font-size:14.5px;color:#33413E}
+.edit-block ul li{padding:5px 0 5px 18px;position:relative}
+.edit-block ul li:before{content:"•";position:absolute;left:2px;color:var(--green);font-weight:700}
+.media{border-radius:var(--card-r);min-height:250px;background:
+  repeating-conic-gradient(#E7ECEA 0 90deg,#F5F7F6 0 180deg) 0 0/28px 28px;
+  border:1px solid var(--line);display:flex;align-items:flex-end;padding:14px}
+.media span{background:#fff;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--grey);padding:5px 10px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.chip{background:var(--mint);color:var(--green-dark);border-radius:999px;font-size:13px;font-weight:600;padding:7px 14px}
+
+/* ── Mini stats band (stats-band variation, green) ───── */
+.statband{background:var(--green-deep);border-radius:var(--card-r);color:#fff;display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin-top:24px}
+.statband div{padding:22px 10px;border-left:1px solid rgba(255,255,255,.25)}
+.statband div:first-child{border:none}
+.statband b{display:block;font-size:30px;font-weight:300}
+.statband span{font-size:12.5px;opacity:.9}
+
+/* ── Document download card (from IFU library) ───────── */
+.doc-row{display:grid;grid-template-columns:1.2fr .8fr;gap:26px;align-items:stretch}
+.doc-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);padding:24px;display:flex;gap:18px;align-items:center}
+.pdfico{width:64px;height:76px;background:var(--page);border:1px solid var(--line);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none}
+.pdfico b{color:#D0342C;font-size:13px}
+.pdfico i{font-size:22px;color:#D0342C;font-style:normal}
+.tag{display:inline-block;background:var(--green);color:#fff;font-size:11.5px;font-weight:600;border-radius:5px;padding:3px 9px;margin-bottom:6px}
+.doc-card h4{font-size:16px;margin-bottom:4px}
+.doc-card .meta{font-size:13px;color:var(--grey)}
+.policy{background:var(--page);border:1px solid var(--line);border-radius:var(--card-r);padding:22px;font-size:13.5px;color:var(--grey)}
+.policy b{color:var(--ink)}
+.ack{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--grey);margin-top:18px}
+.ack input{margin-top:3px;accent-color:var(--green)}
+
+/* ── Need help band (global) ─────────────────────────── */
+.needhelp{background:var(--mint);text-align:center;padding:52px 0}
+.needhelp h2{font-size:26px;margin-bottom:6px}
+.needhelp p{color:var(--grey);margin-bottom:20px}
+
+/* ── Footer (global) ─────────────────────────────────── */
+footer{background:var(--green);color:#fff;padding:52px 0 26px;font-size:14px}
+footer .cols{display:grid;grid-template-columns:repeat(5,1fr);gap:26px;margin-bottom:36px}
+footer h5{font-size:15.5px;margin-bottom:14px}
+footer a{color:#fff;opacity:.92;display:block;padding:4px 0}
+footer a:hover{opacity:1;text-decoration:underline}
+footer .base{border-top:1px solid rgba(255,255,255,.3);padding-top:18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;opacity:.95}
+.socials{display:flex;gap:14px}
+.socials a{width:32px;height:32px;border:1.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;padding:0}
+
+
+/* ── Imagery upgrades ─────────────────────────────── */
+.media{padding:0;overflow:hidden;min-height:280px;position:relative;background:linear-gradient(135deg,#BFE8DC,#7ECDB8)}
+.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.media span{position:absolute;left:14px;bottom:14px;z-index:2;background:rgba(255,255,255,.94)}
+.cat-card{padding:0;overflow:hidden}
+.cat-card .thumb{height:120px;background:linear-gradient(135deg,#BFE8DC,#7ECDB8);position:relative}
+.cat-card .thumb img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.cat-card .body{padding:18px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.imgband{position:relative;min-height:340px;display:flex;align-items:center;color:#fff;background:#0B3B30}
+.imgband img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.imgband .wrap{position:relative;z-index:2;padding-top:56px;padding-bottom:56px}
+.imgband h2{font-size:30px;margin-bottom:12px;max-width:640px}
+.imgband p{max-width:640px;font-size:15.5px;opacity:.95}
+.imgband .cols2{display:grid;grid-template-columns:1fr 1fr;gap:36px;max-width:1000px}
+@media(max-width:980px){.imgband .cols2{grid-template-columns:1fr}}
+
+@media(max-width:980px){
+  .hero h1{font-size:30px}
+  .hero .stats,.statband{grid-template-columns:repeat(2,1fr)}
+  .hero .stat:nth-child(3),.statband div:nth-child(3){border-left:none}
+  .msg-grid,.semui,.doc-row,.edit-block{grid-template-columns:1fr}
+  .edit-block.flip .media{order:0}
+  .grid-5{grid-template-columns:repeat(2,1fr)}
+  .grid-3,.principles{grid-template-columns:1fr}
+  footer .cols{grid-template-columns:1fr 1fr}
+  .nav .links{display:none}
+}
+
+/* ── Comms-hub additions ──────────────────────────── */
+.searchbar{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:12px 16px;margin-bottom:20px}
+.searchbar input{border:none;outline:none;flex:1;font-size:15px;color:var(--ink)}
+.filtertabs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.ftab{border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 16px;font-size:14px;font-weight:500;color:var(--grey);cursor:pointer}
+.ftab.on{background:var(--mint);border-color:var(--green);color:var(--green);font-weight:600}
+.listmeta{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;color:var(--grey);margin:10px 0 18px}
+.news-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.news-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.news-card .nimg{aspect-ratio:16/9;background:linear-gradient(135deg,#BFE8DC,#7ECDB8);position:relative}
+.news-card .nimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.news-card .nbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+.kicker{font-size:12px;color:var(--green);font-weight:600}
+.news-card h3{font-size:15.5px;line-height:1.35}
+.news-card .date{font-size:12.5px;color:var(--grey);margin-top:auto}
+.pagination{display:flex;gap:8px;justify-content:center;margin-top:28px}
+.pagination a{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:14px;color:var(--ink);border:1px solid transparent}
+.pagination a.on{background:var(--green);color:#fff}
+.pagination a:hover{border-color:var(--line)}
+.subscribe{background:var(--green-deep);border-radius:var(--card-r);color:#fff;padding:36px 40px;display:grid;grid-template-columns:1.2fr 1fr;gap:30px;align-items:center}
+.subscribe h3{font-size:24px;margin-bottom:6px}
+.subscribe p{opacity:.92;font-size:14.5px}
+.subform{display:flex;gap:10px}
+.subform input{flex:1;border:none;border-radius:8px;padding:14px 16px;font-size:15px}
+.subform .btn{background:#fff;color:var(--green)}
+.subnote{font-size:12px;opacity:.8;margin-top:8px}
+.event-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.event-card .eimg{aspect-ratio:16/9;background:linear-gradient(135deg,#BFE8DC,#7ECDB8);position:relative}
+.event-card .eimg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.badge-live{position:absolute;top:12px;right:12px;background:#fff;color:var(--green);font-size:11.5px;font-weight:700;border-radius:5px;padding:4px 9px;z-index:2}
+.event-card .ebody{padding:16px 18px 18px}
+.event-card h3{font-size:15.5px;margin:6px 0 10px}
+.event-card .row{font-size:13px;color:var(--grey);padding:2px 0}
+.event-card .row b{color:var(--ink);font-weight:600}
+.event-card .foot{padding:0 18px 18px;margin-top:auto}
+.social-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.social-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);overflow:hidden}
+.social-card .shead{display:flex;gap:10px;align-items:center;padding:12px 14px;font-size:13px}
+.social-card .shead .sav{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.social-card .shead b{display:block;font-size:13px}
+.social-card .shead span{color:var(--grey);font-size:11.5px}
+.social-card .simg{aspect-ratio:1/1;background:linear-gradient(135deg,#BFE8DC,#7ECDB8);position:relative}
+.social-card .simg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.social-card .scap{padding:12px 14px;font-size:12.5px;color:#33413E}
+.social-card .sfoot{padding:0 14px 14px;font-size:12px;color:var(--grey)}
+.contact-card{background:#fff;border:1px solid var(--line);border-radius:var(--card-r);box-shadow:var(--shadow);padding:22px}
+.contact-card h3{font-size:16px;margin-bottom:2px}
+.contact-card .where{color:var(--green);font-size:13px;font-weight:500;margin-bottom:12px}
+.contact-card .line{display:flex;gap:10px;align-items:center;font-size:13.5px;color:#33413E;padding:4px 0}
+.contact-card .ic{width:26px;height:26px;border-radius:50%;background:var(--mint);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}
+.mediakit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:980px){
+ .news-grid,.social-grid{grid-template-columns:1fr 1fr}
+ .grid-4e{grid-template-columns:1fr}
+ .subscribe,.mediakit-grid{grid-template-columns:1fr}
+}
+.grid-4e{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+</style>
+</head>
+<body>
+<button id="annoToggle" onclick="document.body.classList.toggle('show-anno')">Component map: <span>off</span></button>
+
+<!-- GLOBAL HEADER -->
+<header><div class="wrap nav">
+  <div class="logo">'GC,'<small>Smile for the World · Since 1921</small></div>
+  <nav class="links"><a href="#">Products</a><a href="#">News</a><a href="#">Education</a><a href="#">Company</a><a href="#">Resources &amp; IFU</a></nav>
+  <div class="util">🔍 <span>🇬🇧</span><div class="avatar">👤</div></div>
+</div></header>
+<div class="crumb"><div class="wrap"><a href="#">Home</a> › <a href="#">News</a> › <b>Newsroom &amp; Corporate Communications</b></div></div>
+
+<!-- HERO — Stats hero (Certifications page) with comms KPIs -->
+<div class="hero" data-comp>
+  <div class="wrap">
+    <div class="anno">⬡ Stats Hero — from Certifications page · variation: communications KPIs, dual media CTAs</div>
+    <div class="eyebrow" style="color:#B8EBDD">GC Newsroom</div>
+    <h1>Corporate communications &amp; engagement</h1>
+    <p class="lede">Official announcements, press resources, newsletters and events from GC — a leading oral health company supplying world-class quality products and services to dental professionals worldwide.</p>
+    <div class="stats">
+      <div class="stat"><b>1921</b><span>Telling the GC story since</span></div>
+      <div class="stat"><b>145+</b><span>Countries reached</span></div>
+      <div class="stat"><b>4×/yr</b><span>Get Connected editions</span></div>
+      <div class="stat"><b>2,000+</b><span>Professionals trained yearly at GC Campus</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn ghost" href="#mediakit">Download media kit <span class="arrow">→</span></a>
+      <a class="btn outline" href="#press">Press office contacts <span class="arrow">→</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ANCHOR TAB BAR — from PDP -->
+<div class="tabbar" data-comp><div class="wrap">
+  <a href="#featured" class="on">Featured</a><a href="#news">News &amp; Press</a><a href="#newsletter">Get Connected</a><a href="#events">Events &amp; Webinars</a><a href="#social">Social</a><a href="#mediakit">Media Kit</a><a href="#press">Press Office</a>
+</div></div>
+
+<!-- FEATURED ANNOUNCEMENT — editorial block + pull quote (Article page) -->
+<section id="featured">
+  <div class="wrap">
+    <div class="anno">⬡ Alternating Editorial Block — from Get Connected hub · variation: "featured announcement" with kicker + date ⬡ Pull Quote — from Article page</div>
+    <div class="edit-block" data-comp style="border-top:none;padding-top:0">
+      <div class="media"><img src="https://images.unsplash.com/photo-1560523159-4a9692d222f9?auto=format&fit=crop&crop=entropy&w=900&h=560&q=60" alt="Leadership announcement" loading="lazy" onerror="this.remove()"><span>GC Holding AG · Leadership announcement</span></div>
+      <div>
+        <div class="tagline">Featured · Company News</div>
+        <h3>Chairman Nakao and the GC Holding Board of Directors announce the appointment of Dr. Per Falk as CEO</h3>
+        <p style="color:var(--grey);font-size:14.5px;margin-bottom:14px">Under the new management structure established in 2024, GC Holding AG leads the group's evolution into a company that provides greater value to stakeholders worldwide — with Dr. Falk driving innovative solutions across the four global regions.</p>
+        <a class="btn" href="#">Read the announcement <span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="pullquote" data-comp>
+      <p>Driven by our unwavering belief that enhancing oral health is key to overall well-being, we will continue to strengthen our initiatives to make meaningful contributions to individuals and communities around the world.</p>
+      <cite>— Makoto Nakao, Chairman, GC Holding AG</cite>
+    </div>
+  </div>
+</section>
+
+<!-- NEWS & PRESS — Blogs listing pattern: search + filter tabs + card grid + pagination -->
+<section id="news" class="alt">
+  <div class="wrap">
+    <div class="anno">⬡ Search Bar, Count Filter Tabs, Sort &amp; View Toggle, Card Grid, Pagination — from Blogs listing (Images 5–8) · variation: news taxonomy mirrors live site (Company / Press / Product / Campus)</div>
+    <div class="sec-head"><div class="eyebrow">Newsroom</div><h2>News &amp; press releases</h2></div>
+    <div class="searchbar" data-comp>🔍 <input placeholder="Search news, announcements, press releases…"></div>
+    <div class="filtertabs" data-comp>
+      <button class="ftab on">All (220)</button><button class="ftab">Company news (64)</button><button class="ftab">Press releases (48)</button><button class="ftab">Product news (86)</button><button class="ftab">GC Campus (22)</button>
+    </div>
+    <div class="listmeta"><span>Showing 1 – 8 out of 220 items</span><span>Sort by: <b style="color:var(--ink)">Latest ▾</b></span></div>
+    <div class="news-grid" data-comp>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="CSR report"></div><div class="nbody"><span class="kicker">Company news</span><h3>GC Group Global CSR Report 2025 published</h3><div class="date">Nov 27, 2025 · 4 min read</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="OHAP"></div><div class="nbody"><span class="kicker">Company news</span><h3>Celebrating 10 years of the Oral Health for an Ageing Population project</h3><div class="date">Sep 2025 · FDI World Dental Congress</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="IDS press conference"></div><div class="nbody"><span class="kicker">Press release</span><h3>IDS 2025 — International press conference highlights</h3><div class="date">Mar 2025 · Cologne</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Partnership"></div><div class="nbody"><span class="kicker">Press release</span><h3>GC Orthodontics announces MOV Aligners strategic partnership with EON Dental</h3><div class="date">Mar 2025</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Award"></div><div class="nbody"><span class="kicker">Company news</span><h3>GC Europe: first dental company to win the EFQM Global Excellence Award</h3><div class="date">Company milestone</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1590650153855-d9e808231d41?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Media coverage"></div><div class="nbody"><span class="kicker">In the media</span><h3>British Dental Journal editorial highlights the OHAP profession–industry collaboration</h3><div class="date">Earned media</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Podcast"></div><div class="nbody"><span class="kicker">Media</span><h3>GC Dental Podcast Series — new products and techniques, straight from IDS</h3><div class="date">Ongoing series</div></div></div>
+      <div class="news-card"><div class="nimg"><img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Campus"></div><div class="nbody"><span class="kicker">GC Campus</span><h3>New modular training laboratory inaugurated at GC Europe Campus</h3><div class="date">Leuven, Belgium</div></div></div>
+    </div>
+    <div class="pagination" data-comp><a class="on" href="#">1</a><a href="#">2</a><a href="#">3</a><span style="align-self:center;color:var(--grey)">…</span><a href="#">28</a><a href="#">›</a></div>
+  </div>
+</section>
+
+<!-- GET CONNECTED — newsletter blocks + full-width subscribe (Article sidebar subscribe, promoted) -->
+<section id="newsletter">
+  <div class="wrap">
+    <div class="anno">⬡ Alternating Editorial Block — from Get Connected hub, as-is ⬡ Subscribe Module — from Article sidebar · variation: promoted to full-width band</div>
+    <div class="sec-head"><div class="eyebrow">Get Connected</div><h2>GC's digital newsletter</h2>
+    <p>"GC Get Connected" provides an overview of the most innovative and trending topics in dentistry — clinical cases, techniques and product insights by leading authors.</p></div>
+    <div class="edit-block" data-comp style="border-top:none;padding-top:8px">
+      <div class="media"><img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&crop=entropy&w=900&h=560&q=60" loading="lazy" onerror="this.remove()" alt="Newsletter edition"><span>Workflow Special · Dentists' edition</span></div>
+      <div>
+        <div class="tagline">Latest edition</div>
+        <h3>GC Get Connected — Special Edition: Injection moulding technique</h3>
+        <ul>
+          <li>Injection moulding with composite for a predictable aesthetic outcome — Dr. Ali Salehi, France</li>
+          <li>An efficient approach to the restoration of worn incisors — Dr. Florian Klumpp, Germany</li>
+          <li>Clinical step-by-step with G-ænial Universal Injectable and EXACLEAR — full case gallery</li>
+        </ul>
+        <a class="btn" href="#">Download report (1.5MB) <span class="arrow">→</span></a>
+      </div>
+    </div>
+    <div class="subscribe" data-comp>
+      <div><h3>Never miss an edition</h3><p>Get Connected, event invitations and press announcements — straight to your inbox, four times a year.</p></div>
+      <div><div class="subform"><input placeholder="yourname@email.com"><button class="btn">Subscribe</button></div>
+      <div class="subnote">By subscribing you agree to our Privacy &amp; Unsubscribe policy.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- EVENTS & WEBINARS — event cards from PDP events carousel -->
+<section id="events" class="alt">
+  <div class="wrap">
+    <div class="anno">⬡ Event Card — from PDP "Events" carousel (Image 18) · variation: Online/On-site badge, 4-up grid instead of carousel</div>
+    <div class="sec-head" style="display:flex;justify-content:space-between;align-items:flex-end;max-width:none"><div><div class="eyebrow">Engagement</div><h2>Events &amp; webinars</h2></div><a class="readmore" href="#">View all events →</a></div>
+    <div class="grid-4e" data-comp>
+      <div class="event-card"><div class="eimg"><span class="badge-live">On-site</span><img src="https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Symposium"></div><div class="ebody"><span class="kicker">Event · Symposium</span><h3>The 6th International Dental Symposium</h3><div class="row"><b>Date:</b> Oct 3 – 4, 2026</div><div class="row"><b>Where:</b> Tokyo &amp; online</div></div><div class="foot"><a class="readmore" href="#">View event →</a></div></div>
+      <div class="event-card"><div class="eimg"><span class="badge-live">Online</span><img src="https://images.unsplash.com/photo-1591115765373-5207764f72e7?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Webinar"></div><div class="ebody"><span class="kicker">Event · Webinar</span><h3>Live webinar — join our clinical experts</h3><div class="row"><b>Date:</b> Monthly series</div><div class="row"><b>Timing:</b> 18:00 – 19:00 (CET)</div></div><div class="foot"><a class="readmore" href="#">Register →</a></div></div>
+      <div class="event-card"><div class="eimg"><span class="badge-live">On-site</span><img src="https://images.unsplash.com/photo-1560439514-4e9645039924?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Campus course"></div><div class="ebody"><span class="kicker">Event · Training</span><h3>GC Europe Campus — advanced technique courses</h3><div class="row"><b>Where:</b> Leuven, Belgium</div><div class="row"><b>Capacity:</b> ~2,000 professionals / year</div></div><div class="foot"><a class="readmore" href="#">Browse courses →</a></div></div>
+      <div class="event-card"><div class="eimg"><span class="badge-live">Contest</span><img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&crop=entropy&w=640&h=360&q=60" loading="lazy" onerror="this.remove()" alt="Contest"></div><div class="ebody"><span class="kicker">Engagement · Contest</span><h3>GC Academic Excellence Contest 2026</h3><div class="row"><b>Prize:</b> Master Course at GC Campus, Leuven</div><div class="row"><b>Entries:</b> Facebook &amp; Instagram</div></div><div class="foot"><a class="readmore" href="#">How to enter →</a></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL WALL — social post carousel from Article page -->
+<section id="social">
+  <div class="wrap">
+    <div class="anno">⬡ Social Post Card — from Article page "Social Post" carousel (Image 9) · variation: 4-up wall + platform label</div>
+    <div class="sec-head" style="display:flex;justify-content:space-between;align-items:flex-end;max-width:none"><div><div class="eyebrow">Follow our socials</div><h2>GC in your feed</h2></div><a class="readmore" href="#">View all channels →</a></div>
+    <div class="social-grid" data-comp>
+      <div class="social-card"><div class="shead"><div class="sav">GC</div><div><b>GC Europe</b><span>Instagram · 2d</span></div></div><div class="simg"><img src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&crop=entropy&w=600&h=600&q=60" loading="lazy" onerror="this.remove()" alt="Social post"></div><div class="scap">Smile for the World 🌍 — behind the scenes at GC Campus Leuven.</div><div class="sfoot">♡ 1,240 · 💬 38</div></div>
+      <div class="social-card"><div class="shead"><div class="sav">GC</div><div><b>GC Europe</b><span>LinkedIn · 4d</span></div></div><div class="simg"><img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&crop=entropy&w=600&h=600&q=60" loading="lazy" onerror="this.remove()" alt="Social post"></div><div class="scap">Proud of our Nakama — Engagement Survey results are in.</div><div class="sfoot">♡ 890 · 💬 24</div></div>
+      <div class="social-card"><div class="shead"><div class="sav">GC</div><div><b>GC Dental</b><span>YouTube · 1w</span></div></div><div class="simg"><img src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&crop=entropy&w=600&h=600&q=60" loading="lazy" onerror="this.remove()" alt="Podcast"></div><div class="scap">🎙 GC Dental Podcast — new episode: injection moulding, demystified.</div><div class="sfoot">▶ 12k views</div></div>
+      <div class="social-card"><div class="shead"><div class="sav">GC</div><div><b>GC Europe</b><span>Facebook · 1w</span></div></div><div class="simg"><img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&crop=entropy&w=600&h=600&q=60" loading="lazy" onerror="this.remove()" alt="Contest"></div><div class="scap">Academic Excellence Contest — post your clinical case &amp; win a trip to Leuven!</div><div class="sfoot">♡ 2,100 · ↻ 310</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MEDIA KIT — IFU document cards -->
+<section id="mediakit" class="alt">
+  <div class="wrap">
+    <div class="anno">⬡ Document Card + type badge + download — from Documents &amp; Manuals (IFU) library, as-is · variation: media-kit taxonomy badges</div>
+    <div class="sec-head"><div class="eyebrow">For journalists &amp; partners</div><h2>Media kit &amp; press resources</h2></div>
+    <div class="mediakit-grid" data-comp>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>ZIP</b></div><div style="flex:1"><span class="tag">Brand</span><h4>GC logo pack &amp; brand guidelines</h4><div class="meta">Logos (SVG/PNG), colour &amp; typography rules</div></div><a class="btn" href="#">↓</a></div>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>PDF</b></div><div style="flex:1"><span class="tag">Fact sheet</span><h4>GC Group corporate fact sheet</h4><div class="meta">History, figures, leadership, global network</div></div><a class="btn" href="#">↓</a></div>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>ZIP</b></div><div style="flex:1"><span class="tag">Imagery</span><h4>Executive portraits &amp; facility photography</h4><div class="meta">High-res, rights-cleared for editorial use</div></div><a class="btn" href="#">↓</a></div>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>PDF</b></div><div style="flex:1"><span class="tag">Report</span><h4>GC Group Global CSR Report 2025</h4><div class="meta">English · published Nov 2025</div></div><a class="btn" href="#">↓</a></div>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>PDF</b></div><div style="flex:1"><span class="tag">Press release</span><h4>Latest press release archive</h4><div class="meta">All releases, 2021 – present</div></div><a class="btn" href="#">↓</a></div>
+      <div class="doc-card"><div class="pdfico"><i>⬇</i><b>PDF</b></div><div style="flex:1"><span class="tag">Get Connected</span><h4>Newsletter archive — all editions</h4><div class="meta">Dentists' &amp; Technicians' editions</div></div><a class="btn" href="#">↓</a></div>
+    </div>
+    <div class="ack" data-comp style="margin-top:20px"><input type="checkbox" id="mk"><label for="mk">I acknowledge these materials are provided for editorial and partner use in line with GC's brand usage terms.</label></div>
+  </div>
+</section>
+
+<!-- PRESS OFFICE — Dealer card variation -->
+<section id="press">
+  <div class="wrap">
+    <div class="anno">⬡ Dealer Contact Card — from Dealers page (Image 16) · variation: press-office contacts per region (phone/email/site)</div>
+    <div class="sec-head"><div class="eyebrow">Press office</div><h2>Media contacts by region</h2></div>
+    <div class="grid-4e" data-comp>
+      <div class="contact-card"><h3>GC Europe N.V.</h3><div class="where">Leuven, Belgium · EMEA press office</div>
+        <div class="line"><span class="ic">✆</span>+32 16 74 10 00</div><div class="line"><span class="ic">✉</span>press@gceurope.com</div><div class="line"><span class="ic">🌐</span>europe.gc.dental</div></div>
+      <div class="contact-card"><h3>GC Corporation</h3><div class="where">Tokyo, Japan · Global HQ communications</div>
+        <div class="line"><span class="ic">✆</span>+81 3 3815 1811</div><div class="line"><span class="ic">✉</span>gccsr@mls.gcdental.co.jp</div><div class="line"><span class="ic">🌐</span>gc.dental</div></div>
+      <div class="contact-card"><h3>GC America Inc.</h3><div class="where">Alsip, IL, USA · Americas press office</div>
+        <div class="line"><span class="ic">✆</span>+1 800 323 7063</div><div class="line"><span class="ic">✉</span>press@gcamerica.com</div><div class="line"><span class="ic">🌐</span>gcamerica.com</div></div>
+      <div class="contact-card"><h3>GC Asia Dental</h3><div class="where">Singapore · APAC press office</div>
+        <div class="line"><span class="ic">✆</span>+65 6546 7588</div><div class="line"><span class="ic">✉</span>press@gcasia.info</div><div class="line"><span class="ic">🌐</span>gcasia.info</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- NEED HELP -->
+<section class="needhelp" data-comp>
+  <div class="wrap">
+    <div class="anno" style="margin:0 auto 14px">⬡ Need Help? Band — global, as-is</div>
+    <h2>Working on a story about GC?</h2><p>Our communications team responds to media enquiries within one business day.</p>
+    <a class="btn" href="#">Contact the press office <span class="arrow">→</span></a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer><div class="wrap">
+  <div class="cols">
+    <div><h5>Focus Products</h5><a href="#">G-BOND Universal</a><a href="#">G-GEM ONE</a><a href="#">G-aenial A'CHORD</a><a href="#">EQUIA Forte HT</a></div>
+    <div><h5>Get Connected</h5><a href="#">Careers</a><a href="#">Corporate</a><a href="#">Events</a><a href="#">Newsletter</a></div>
+    <div><h5>GC Group</h5><a href="#">GC Holding</a><a href="#">GC Corporation</a><a href="#">GC International AG</a><a href="#">GC Orthodontics</a></div>
+    <div><h5>GC United Kingdom Ltd.</h5><a href="#">Teams</a><a href="#">Dealers</a><a href="#">Education</a><a href="#">Contact</a></div>
+    <div><h5>Follow our socials</h5><div class="socials"><a href="#">▶</a><a href="#">𝕏</a><a href="#">f</a><a href="#">◎</a></div></div>
+  </div>
+  <div class="base"><span>© GC EUROPE A.G. 2025 | All rights reserved</span><span>Contact us · Terms &amp; Conditions of Use · Privacy · Cookies</span></div>
+</div></footer>
+
+<script>
+const t=document.getElementById('annoToggle');
+t.addEventListener('click',()=>{t.querySelector('span').textContent=document.body.classList.contains('show-anno')?'on':'off'});
+const links=[...document.querySelectorAll('.tabbar a')];const ids=links.map(a=>a.getAttribute('href'));
+addEventListener('scroll',()=>{let cur=ids[0];ids.forEach(id=>{const el=document.querySelector(id);if(el&&el.getBoundingClientRect().top<160)cur=id});links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')===cur));},{passive:true});
+document.querySelectorAll('.ftab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.ftab').forEach(x=>x.classList.remove('on'));b.classList.add('on');}));
+</script>
+</body></html>
