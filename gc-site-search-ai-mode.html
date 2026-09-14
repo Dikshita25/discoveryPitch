@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GC Site Search — Normal & AI Mode with Referenced Sources | GC DLS</title>
+<style>
+:root{--green:#009E7E;--green-dark:#008065;--deep:#0B5A47;--mint:#E9F6F2;--mint-soft:#F4FAF8;--ink:#1E2A28;--grey:#5A6B67;--line:#E2EAE7;--shadow:0 4px 14px rgba(20,60,50,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);font-size:15px;line-height:1.6;background:#fff}
+a{color:var(--green-dark);text-decoration:none}
+img{max-width:100%}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+h1{font-size:34px;font-weight:800}
+h2{font-size:20px;font-weight:800}
+button{font:inherit;cursor:pointer}
+/* header */
+header{border-bottom:1px solid var(--line);background:#fff;position:sticky;top:0;z-index:50}
+.nav{display:flex;align-items:center;gap:22px;height:60px}
+.logo{font-family:"Segoe UI Black",Arial;font-size:24px;color:var(--green);font-weight:900}
+.nav .links{display:flex;gap:18px;font-size:13.5px;font-weight:600;color:var(--grey);margin-left:auto}
+.nav .links a.on{color:var(--green-dark);border-bottom:3px solid var(--green);padding-bottom:16px;margin-bottom:-19px}
+/* hero */
+.searchhero{background:var(--mint);padding:34px 0 30px}
+.crumb{font-size:12px;font-weight:700;color:var(--green-dark);margin-bottom:6px}
+.sub{color:var(--grey);margin:4px 0 18px}
+.modetog{display:inline-flex;background:#fff;border-radius:26px;padding:4px;box-shadow:var(--shadow);margin-bottom:16px}
+.modetog button{border:none;background:transparent;border-radius:22px;padding:9px 18px;font-size:13px;font-weight:700;color:var(--grey);display:flex;gap:7px;align-items:center}
+.modetog button.on{background:var(--green);color:#fff}
+.searchbar{display:flex;background:#fff;border-radius:12px;box-shadow:var(--shadow);overflow:hidden;max-width:860px}
+.searchbar input{flex:1;border:none;padding:16px 20px;font:inherit;font-size:15px;outline:none}
+.searchbar button{border:none;background:var(--green);color:#fff;font-weight:700;padding:0 28px;display:flex;gap:8px;align-items:center}
+.recents{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--grey);align-items:center}
+.recents a{background:#fff;border:1px solid var(--line);border-radius:18px;padding:6px 14px;font-weight:600;color:var(--ink);font-size:12px}
+.airesline{font-size:13px;margin-top:14px;display:none}
+body[data-mode="ai"] .airesline{display:block}
+.airesline b{color:var(--green-dark)}
+/* layout */
+.results{display:grid;grid-template-columns:280px 1fr;gap:28px;padding:30px 0 60px}
+body[data-mode="ai"] .sidecats{display:none}
+body[data-mode="ai"] .results{grid-template-columns:1fr}
+.sidecats{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;align-self:start;position:sticky;top:80px}
+.sidecats h3{font-size:17px;margin-bottom:12px}
+.cats{list-style:none}
+.cats li{padding:8px 0 8px 26px;position:relative;font-size:13.5px;font-weight:600;color:var(--grey);cursor:pointer}
+.cats li:before{content:"○";position:absolute;left:2px;color:#B9C7C3}
+.cats li.on{color:var(--green-dark)}
+.cats li.on:before{content:"◉";color:var(--green)}
+.cats li small{color:#9AA8A4;font-weight:500}
+.cats li.sub{margin-left:18px;font-size:12.5px}
+/* result rows */
+.resbar{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--grey);margin-bottom:14px}
+.resbar .pill{border:1px solid var(--line);border-radius:16px;padding:5px 12px;font-weight:700;font-size:12px}
+.rrow{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:10px}
+.rrow .rtop{display:flex;gap:8px;align-items:center;margin-bottom:5px}
+.rtype{font-size:10px;font-weight:800;letter-spacing:.05em;border-radius:4px;padding:3px 8px;background:var(--mint);color:var(--green-dark)}
+.rtype.pdf{background:#FDECEC;color:#B03030}
+.rtype.ev{background:#FFF3DB;color:#8A6A1F}
+.rtype.news{background:#E8EEF9;color:#3A5A9A}
+.rrow h4{font-size:15px}
+.rrow p{font-size:13px;color:var(--grey);margin:4px 0 6px}
+.rrow .rmeta{font-size:11.5px;color:#9AA8A4;display:flex;gap:14px}
+.tag{font-size:10.5px;font-weight:700;background:var(--mint);color:var(--green-dark);border-radius:4px;padding:2px 8px}
+/* AI card */
+.aicard{background:#fff;border:1.5px solid var(--green);border-radius:14px;box-shadow:0 8px 28px rgba(0,158,126,.12);padding:26px 30px;display:none}
+body[data-mode="ai"] .aicard{display:block}
+.aihead{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.aiav{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.aihead b{display:block;font-size:15px}
+.aihead span{font-size:12px;color:var(--green-dark)}
+.beta{font-size:10px;font-weight:800;background:var(--mint);color:var(--green-dark);border-radius:4px;padding:3px 8px;margin-left:8px}
+.aicard .ans{font-size:14.5px;color:#2A3835}
+.aicard h5{font-size:13px;font-weight:800;margin:16px 0 8px}
+.aicard ul.ins{padding-left:20px;font-size:13.5px;color:#33413E}
+.aicard ul.ins li{margin:5px 0}
+.srcchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.src{display:inline-flex;gap:7px;align-items:center;border:1.5px solid var(--line);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer}
+.src:hover{border-color:var(--green)}
+.src .n{width:18px;height:18px;border-radius:50%;background:var(--mint);color:var(--green-dark);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.src .k{font-size:9px;font-weight:800;letter-spacing:.04em;border-radius:3px;padding:2px 5px;background:var(--mint);color:var(--green-dark)}
+.src .k.pdf{background:#FDECEC;color:#B03030}
+.src .k.page{background:#E8EEF9;color:#3A5A9A}
+.fups{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fup{border:1.5px solid var(--green);border-radius:18px;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--green-dark);background:#fff}
+.aifoot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:16px;padding-top:12px;font-size:12.5px;color:var(--grey)}
+.aifoot button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:var(--grey)}
+/* reference documents block */
+.refdocs{background:var(--mint-soft);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-top:16px;display:none}
+body[data-mode="ai"] .refdocs{display:block}
+.refdocs h3{font-size:14px;margin-bottom:10px}
+.ref{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:8px;transition:.3s}
+.ref.hl{border-color:var(--green);box-shadow:0 0 0 3px rgba(0,158,126,.15)}
+.ref .ri{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none;background:var(--mint)}
+.ref b{font-size:13px;display:block}
+.ref span{font-size:11px;color:var(--grey)}
+.ref a{margin-left:auto;font-size:12px;font-weight:800;white-space:nowrap}
+/* chat */
+.chat{margin-top:22px;display:none}
+body[data-mode="ai"] .chat{display:block}
+.msg{display:flex;gap:10px;margin:14px 0;align-items:flex-end}
+.msg.user{justify-content:flex-end}
+.bubble{max-width:70%;border-radius:14px;padding:13px 17px;font-size:13.5px}
+.msg.ai .bubble{background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px}
+.msg .av{width:32px;height:32px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:14px}
+.msg.ai .av{background:var(--green);color:#fff}
+.msg.user .av{background:#E3E8E6;color:var(--grey)}
+.msgmeta{font-size:10.5px;color:#9AA8A4;margin:2px 44px}
+.msg.user + .msgmeta{text-align:right}
+.bsrc{display:flex;gap:6px;margin:6px 44px}
+.bsrc button{border:1px solid var(--line);background:var(--mint);color:var(--green-dark);font-size:10.5px;font-weight:800;border-radius:5px;padding:3px 9px}
+.chatbar{display:flex;background:#fff;border:1.5px solid var(--line);border-radius:26px;overflow:hidden;margin-top:16px;box-shadow:var(--shadow)}
+.chatbar input{flex:1;border:none;padding:13px 20px;font:inherit;font-size:13.5px;outline:none}
+.chatbar button{border:none;background:var(--green);color:#fff;padding:0 22px;font-size:15px}
+/* still questions */
+.still{background:var(--mint);text-align:center;padding:44px 0}
+.still h2{font-size:24px}
+.still p{color:var(--grey);max-width:520px;margin:8px auto 16px}
+.btn{display:inline-flex;gap:8px;align-items:center;background:var(--green);color:#fff;font-weight:700;border:none;border-radius:22px;padding:11px 22px;font-size:13.5px}
+.btn.outline{background:#fff;color:var(--green-dark);border:1.5px solid var(--green)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#1E2A28;color:#fff;border-radius:10px;padding:13px 22px;font-size:13px;opacity:0;transition:.35s;z-index:100}
+.toast.show{transform:translateX(-50%);opacity:1}
+footer{border-top:1px solid var(--line);padding:18px 0;font-size:12.5px;color:var(--grey)}
+footer .wrap{display:flex;justify-content:space-between}
+@media(max-width:980px){.results{grid-template-columns:1fr}.sidecats{position:static}}
+
+/* ── two-view journey: home + search ── */
+.view{display:none}
+body[data-v="home"] #v-home{display:block}
+body[data-v="search"] #v-search{display:block}
+.readmore{font-size:13px;font-weight:700;color:var(--green-dark);cursor:pointer}
+.navsearch{border:none;background:var(--mint);border-radius:50%;width:38px;height:38px;font-size:16px;color:var(--green-dark)}
+/* home */
+.homehero{background:linear-gradient(120deg,var(--deep),var(--green-dark) 55%,var(--green));color:#fff;padding:70px 0}
+.homehero .accent{border-left:4px solid #F0D68F;padding-left:16px}
+.homehero h1{color:#fff;font-size:36px;max-width:640px}
+.homehero p{margin:10px 0 20px;opacity:.92;max-width:520px}
+.btn.ghost{background:#fff;color:var(--green-dark)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.tile{position:relative;border-radius:12px;overflow:hidden;background:linear-gradient(160deg,#123B32,#1E5A4B);color:#fff;min-height:200px;padding:18px;display:flex;flex-direction:column;cursor:pointer}
+.tile b{font-size:17px}
+.tile span{margin-top:auto;font-size:11.5px;opacity:.85}
+.tile .arr{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.15);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.pcards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.pcard2{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.pcard2 .ph{aspect-ratio:4/3;background:repeating-conic-gradient(#EAF2EF 0 25%,#F7FBFA 0 50%) 0 0/22px 22px;display:flex;align-items:center;justify-content:center;font-size:10.5px;color:#8AA39C;font-weight:700;text-align:center;padding:10px}
+.pcard2 .pb{padding:14px 16px}
+.pcard2 h4{font-size:14.5px;color:var(--green-dark)}
+.pcard2 p{font-size:12px;color:var(--grey);margin-top:4px}
+.statband{background:var(--green);color:#fff;padding:40px 0}
+.statband h2{color:#fff}
+.statband p{opacity:.92;max-width:760px;font-size:13.5px;margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px}
+.stat{background:rgba(255,255,255,.12);border-radius:12px;padding:18px;text-align:center}
+.stat b{font-size:26px;display:block}
+.stat span{font-size:12px;opacity:.9}
+.meetgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.meet{background:linear-gradient(160deg,#22423A,#2E5A4E);border-radius:12px;color:#fff;min-height:130px;display:flex;align-items:flex-end;padding:14px;font-weight:800;cursor:pointer}
+.sec2{padding:44px 0}
+.sec2.alt2{background:var(--mint-soft)}
+.sechead{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+.sechead .eyebrow{font-size:11px;letter-spacing:.06em;font-weight:800;color:var(--green);text-transform:uppercase}
+.csr{display:grid;grid-template-columns:.9fr 1.1fr;gap:26px;align-items:center;background:var(--mint);border-radius:16px;padding:28px}
+.csr .ph{aspect-ratio:4/3;border-radius:12px;background:repeating-conic-gradient(#DFEFEA 0 25%,#EFF8F5 0 50%) 0 0/22px 22px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#7FA79D;font-weight:700}
+.quoteband{background:linear-gradient(120deg,#123B32,#1E5A4B);color:#fff;padding:44px 0}
+.quoteband .q2{max-width:640px;font-size:18px;font-weight:600}
+.quoteband .who{margin-top:14px;font-size:13px;opacity:.85}
+.bigfoot{background:var(--deep);color:#D7EAE4;padding:34px 0;font-size:12.5px}
+.bigfoot .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.bigfoot b{color:#fff;display:block;margin-bottom:8px;font-size:13px}
+.bigfoot a{color:#D7EAE4;display:block;padding:2px 0}
+/* search modal (screenshot 2) */
+.smodal{position:fixed;inset:0;background:rgba(15,25,22,.55);display:none;align-items:flex-start;justify-content:center;z-index:99;padding-top:12vh}
+.smodal.open{display:flex}
+.sbox{background:var(--mint-soft);border-radius:18px;max-width:900px;width:94%;padding:28px 30px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.sbox .modetog{background:#fff}
+.sbox .searchbar{max-width:none;border:1px solid var(--line)}
+.sbox .recents a{background:#fff}
+@media(max-width:980px){.tiles,.pcards,.stats,.meetgrid,.bigfoot .cols{grid-template-columns:1fr 1fr}.csr{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-mode="normal" data-v="home">
+
+<header><div class="wrap nav">
+  <div class="logo">'GC,'</div>
+  <nav class="links"><a href="#">Products</a><a href="#">News</a><a href="#">Education</a><a href="#">Company</a><a href="#">Resources &amp; IFU</a><a href="#">UK | EN</a><button class="navsearch" onclick="openSearch()" title="Search">🔍</button></nav>
+</div></header>
+<!-- ═══ HOMEPAGE ═══ -->
+<section class="view" id="v-home">
+  <div class="homehero"><div class="wrap">
+    <div class="accent">
+      <h1>Brighten your smile with premium dental care</h1>
+      <p>A century of quality in dental — products, education and partnership for professionals worldwide.</p>
+      <button class="btn ghost" onclick="toast('Campaign page (demo)')">Know more</button>
+      <button class="btn outline" style="margin-left:10px;border-color:#fff;color:#fff;background:transparent" onclick="openSearch()">🔍 Search gc.dental</button>
+    </div>
+  </div></div>
+
+  <div class="sec2"><div class="wrap">
+    <div class="sechead"><div><div class="eyebrow">Explore GC</div><h2>Where do you want to go?</h2></div></div>
+    <div class="tiles">
+      <div class="tile" onclick="toast('Products (demo)')"><div class="arr">→</div><b>Product</b><span>Materials, equipment and digital solutions</span></div>
+      <div class="tile" onclick="toast('News (demo)')"><div class="arr">→</div><b>News</b><span>Latest updates from the GC newsroom</span></div>
+      <div class="tile" onclick="toast('Education (demo)')"><div class="arr">→</div><b>Education</b><span>Webinars, hands-on and certification</span></div>
+      <div class="tile" onclick="toast('Company (demo)')"><div class="arr">→</div><b>Company</b><span>History, philosophy and Semui</span></div>
+    </div>
+  </div></div>
+
+  <div class="sec2 alt2"><div class="wrap">
+    <div class="sechead"><div><div class="eyebrow">Category · Subcategory</div><h2>Top product categories</h2></div><a class="btn outline" style="padding:8px 16px;font-size:12.5px" onclick="toast('All products (demo)')">View all products →</a></div>
+    <div class="pcards">
+      <div class="pcard2"><div class="ph">PACKSHOT — from GC DAM</div><div class="pb"><h4>Restorative →</h4><p>Glass hybrids &amp; composites for minimum intervention.</p></div></div>
+      <div class="pcard2"><div class="ph">PACKSHOT — from GC DAM</div><div class="pb"><h4>Bonding →</h4><p>Universal adhesives for every etch mode.</p></div></div>
+      <div class="pcard2"><div class="ph">PACKSHOT — from GC DAM</div><div class="pb"><h4>Cementation →</h4><p>Luting solutions from GIC to adhesive resin.</p></div></div>
+      <div class="pcard2"><div class="ph">PACKSHOT — from GC DAM</div><div class="pb"><h4>Preventive →</h4><p>Protection, remineralisation and recall care.</p></div></div>
+    </div>
+  </div></div>
+
+  <div class="sec2"><div class="wrap">
+    <div class="sechead"><div><div class="eyebrow">About GC</div><h2>Leading the future of dental care since 1921</h2></div></div>
+    <p style="max-width:760px;color:var(--grey);font-size:14px">For over a century, GC has developed and manufactured high-quality dental products that improve patient care and support dental professionals worldwide — guided by Semui and a commitment to research, education and clinical excellence.</p>
+    <div style="margin-top:14px"><button class="btn outline" onclick="toast('History (demo)')">Our history</button> <button class="btn" style="margin-left:8px" onclick="toast('About (demo)')">Learn more →</button></div>
+  </div></div>
+
+  <div class="statband"><div class="wrap">
+    <h2>Experience GC learning programmes</h2>
+    <p>Hands-on workshops, interactive sessions and collaborative projects that foster growth and innovation — designed to empower professionals at every career stage.</p>
+    <div class="stats">
+      <div class="stat"><b>1000+</b><span>Webinars &amp; seminars</span></div>
+      <div class="stat"><b>~300</b><span>Attendees per session</span></div>
+      <div class="stat"><b>20k+</b><span>Professionals engaged YoY</span></div>
+      <div class="stat"><b>140+</b><span>Countries reached</span></div>
+    </div>
+    <p style="font-size:10.5px;opacity:.7;margin-top:10px">Figures illustrative for the prototype — confirm with education team before external use.</p>
+  </div></div>
+
+  <div class="sec2"><div class="wrap">
+    <div class="sechead"><div><div class="eyebrow">Meet us</div><h2>Learning formats</h2></div><a class="readmore" style="cursor:pointer" onclick="toast('Events (demo)')">Learn more about our events →</a></div>
+    <div class="meetgrid">
+      <div class="meet" onclick="toast('Webinars (demo)')">Webinar</div>
+      <div class="meet" onclick="toast('Seminars (demo)')">Seminar</div>
+      <div class="meet" onclick="toast('Hands-on (demo)')">Hands-on training</div>
+      <div class="meet" onclick="toast('Courses (demo)')">Courses</div>
+    </div>
+  </div></div>
+
+  <div class="sec2 alt2"><div class="wrap">
+    <div class="csr">
+      <div class="ph">REPORT COVER — from GC DAM</div>
+      <div>
+        <div class="eyebrow">Category · Sustainability</div>
+        <h2>GC Group Global CSR Report</h2>
+        <p style="color:var(--grey);font-size:13.5px;margin:8px 0 14px">Aligned with Vision 2031, GC Group actively contributes to a sustainable society through dental R&amp;D, health promotion and improved working conditions — outlined across five materialities.</p>
+        <button class="btn" onclick="toast('⬇ CSR report (demo — link the CSR hub prototype)')">Download report →</button>
+      </div>
+    </div>
+  </div></div>
+
+  <div class="quoteband"><div class="wrap">
+    <div class="eyebrow" style="color:#B8EBDD">Testimonials</div>
+    <div class="q2">"They now understand that a productive discussion about performance leads to tangible outcomes."</div>
+    <div class="who">Product Manager · GC (illustrative quote for prototype)</div>
+  </div></div>
+
+  <div class="bigfoot"><div class="wrap">
+    <div class="cols">
+      <div><b>Focus products</b><a href="#">G-BOND Universal</a><a href="#">G-ænial A'CHORD</a><a href="#">G-ænial Universal Injectable</a><a href="#">G-Premio BOND</a><a href="#">EQUIA Forte HT</a><a href="#">Initial IQ ONE SQIN</a><a href="#">Initial LiSi Block</a></div>
+      <div><b>Get connected</b><a href="#">Careers</a><a href="#">Corporate</a><a href="#">Events</a><a href="#">Newsletter</a></div>
+      <div><b>GC Group</b><a href="#">GC Holding</a><a href="#">GC Corporation</a><a href="#">GC International AG</a><a href="#">GC Orthodontics</a></div>
+      <div><b>GC United Kingdom Ltd.</b><a href="#">Teams</a><a href="#">Dealers</a><a href="#">Education</a><a href="#">Contact</a><a href="#">Dealer portal</a></div>
+    </div>
+    <div style="border-top:1px solid rgba(255,255,255,.2);margin-top:22px;padding-top:14px;display:flex;justify-content:space-between;flex-wrap:gap"><span>© GC EUROPE A.G. 2026 · All rights reserved</span><span>Contact us · Terms &amp; Conditions of Use · Privacy · Cookies</span></div>
+  </div></div>
+</section>
+
+<!-- ═══ SEARCH MODAL (screenshot 2) ═══ -->
+<div class="smodal" id="smodal" onclick="if(event.target===this)closeSearch()">
+  <div class="sbox">
+    <div class="modetog" style="margin-bottom:16px">
+      <button id="smNormal" class="on" onclick="smMode('normal')">🔍 Search site</button>
+      <button id="smAI" onclick="smMode('ai')">✦ AI Mode</button>
+    </div>
+    <div class="searchbar">
+      <input id="mq" value="glass ionomer technology and clinical benefits" onkeydown="if(event.key==='Enter')modalGo()">
+      <button id="mgo" onclick="modalGo()">Search</button>
+    </div>
+    <div class="recents">Recently searched:
+      <a href="#" onclick="mpreset('whitening products');return false">Whitening products</a>
+      <a href="#" onclick="mpreset('Aadva IOS');return false">Aadva IOS</a>
+      <a href="#" onclick="mpreset('EQUIA Forte HT');return false">EQUIA Forte HT</a>
+      <a href="#" onclick="mpreset('G2-BOND storage');return false">G2-BOND storage</a>
+      <a href="#" onclick="mpreset('Resources & downloads');return false">Resources &amp; downloads</a>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SEARCH VIEW ═══ -->
+<section class="view" id="v-search">
+<div class="searchhero"><div class="wrap">
+  <div class="crumb"><a href="#" onclick="goHome();return false">gc.dental</a> › Search</div>
+  <h1>Search</h1>
+  <p class="sub">Find products, documents, FAQs, events and news — or ask the AI.</p>
+  <div class="modetog">
+    <button id="mNormal" class="on" onclick="setMode('normal')">🔍 Search site</button>
+    <button id="mAI" onclick="setMode('ai')">✦ AI Mode</button>
+  </div>
+  <div class="searchbar">
+    <input id="q" value="glass ionomer technology and clinical benefits">
+    <button id="goBtn" onclick="runSearch()">Search</button>
+  </div>
+  <div class="recents">Recently searched:
+    <a href="#" onclick="preset('whitening products');return false">Whitening products</a>
+    <a href="#" onclick="preset('Aadva IOS');return false">Aadva IOS</a>
+    <a href="#" onclick="preset('EQUIA Forte HT steps');return false">EQUIA Forte HT</a>
+    <a href="#" onclick="preset('G2-BOND storage');return false">G2-BOND storage</a>
+    <a href="#" onclick="preset('IFU downloads');return false">Resources &amp; downloads</a>
+  </div>
+  <div class="airesline">AI results for: <b id="aiQ">"glass ionomer technology and clinical benefits"</b> &nbsp;<a href="#" onclick="setMode('normal');return false">✕ Clear</a></div>
+</div></div>
+
+<div class="wrap results">
+  <!-- CATEGORY SIDEBAR (normal mode) -->
+  <aside class="sidecats">
+    <h3>Categories</h3>
+    <ul class="cats" id="cats">
+      <li class="on" data-cat="all" onclick="filterCat(this)">All results <small id="cAll"></small></li>
+      <li data-cat="product" onclick="filterCat(this)">Products <small>· pages</small></li>
+      <li class="sub" data-cat="product" onclick="filterCat(this)">Restoratives &amp; GIC</li>
+      <li data-cat="faq" onclick="filterCat(this)">FAQs</li>
+      <li data-cat="pdf" onclick="filterCat(this)">Documents &amp; IFU <small>· PDF</small></li>
+      <li data-cat="ev" onclick="filterCat(this)">Events &amp; training</li>
+      <li data-cat="news" onclick="filterCat(this)">News</li>
+    </ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <!-- AI OVERVIEW -->
+    <div class="aicard" id="aicard">
+      <div class="aihead"><div class="aiav">✦</div><div><b>GC AI Overview <span class="beta">Beta</span></b><span>Powered by GC Knowledge Base</span></div></div>
+      <p class="ans">GC's Glass Ionomer Cement (GIC) technology is the cornerstone of modern minimum intervention dentistry. Unlike composite resins, glass ionomers form true chemical bonds with tooth structure through an ionic exchange with hydroxyapatite — eliminating the need for separate acid etching. Developed and pioneered by GC since the 1970s, this technology spans restorative, luting, base/liner and preventive applications. The key differentiator is its active fluoride release, which continues to protect the tooth long after placement and can "recharge" when exposed to fluoride from toothpaste or rinses — making it especially valuable in high-caries-risk patients.</p>
+      <h5>Key Clinical Insights</h5>
+      <ul class="ins">
+        <li>Chemical adhesion to enamel and dentin — no separate bonding agent required</li>
+        <li>Sustained fluoride release and recharge capability for ongoing caries prevention</li>
+        <li>Thermal expansion coefficient closely matching natural tooth structure</li>
+        <li>Moisture-tolerant placement — suitable for paediatric and field dentistry</li>
+        <li>Biocompatible, pulp-friendly chemistry ideal for minimum intervention protocols</li>
+      </ul>
+      <h5>Sources</h5>
+      <div class="srcchips">
+        <span class="src" onclick="hlRef(1)"><span class="n">1</span><span class="k">FAQ</span>Glass ionomer technology benefits</span>
+        <span class="src" onclick="hlRef(2)"><span class="n">2</span><span class="k page">PAGE</span>EQUIA Forte HT — product page</span>
+        <span class="src" onclick="hlRef(3)"><span class="n">3</span><span class="k pdf">PDF</span>5-year RCT summary — glass hybrids</span>
+        <span class="src" onclick="hlRef(4)"><span class="n">4</span><span class="k pdf">PDF</span>Fuji family — clinical guide</span>
+      </div>
+      <h5>Ask a follow-up</h5>
+      <div class="fups">
+        <button class="fup" onclick="sendPrompt('Which GC products use glass ionomer technology?')">✦ Which GC products use glass ionomer technology?</button>
+        <button class="fup" onclick="sendPrompt('How does glass ionomer compare to composite resin?')">✦ How does glass ionomer compare to composite resin?</button>
+        <button class="fup" onclick="sendPrompt('What are the clinical steps for EQUIA Forte HT?')">✦ What are the clinical steps for EQUIA Forte HT?</button>
+        <button class="fup" onclick="sendPrompt('What clinical studies support long-term GIC durability?')">✦ Where can I find peer-reviewed evidence?</button>
+      </div>
+      <div class="aifoot">
+        <span>Was this helpful? <button onclick="toast('Thanks — feedback recorded (demo)')">👍 Yes</button> <button onclick="toast('Thanks — we\u2019ll improve this answer (demo)')">👎 No</button></span>
+        <button onclick="copyAns()">⧉ Copy</button>
+      </div>
+    </div>
+
+    <!-- REFERENCE DOCUMENTS attached to the AI answer -->
+    <div class="refdocs" id="refdocs">
+      <h3>Reference documents behind this answer</h3>
+      <div class="ref" id="ref1"><div class="ri">❓</div><div><b>FAQ — Glass ionomer technology and clinical benefits</b><span>Help Center · 4 questions · #9899</span></div><a href="#faqrow" onclick="setMode('normal');toast('Opening FAQ in results (demo)')">Open →</a></div>
+      <div class="ref" id="ref2"><div class="ri">🦷</div><div><b>EQUIA Forte HT — product page</b><span>gc.dental/europe · restorative glass hybrid</span></div><a href="https://www.gc.dental/europe/products/equiaforte-ht" target="_blank">Open →</a></div>
+      <div class="ref" id="ref3"><div class="ri" style="background:#FDECEC">📄</div><div><b>5-year randomised controlled trial — glass hybrid vs composite, Class II</b><span>PDF · clinical evidence summary · demo link</span></div><a href="#" onclick="toast('⬇ PDF (demo — wire to the real study summary)');return false">Download →</a></div>
+      <div class="ref" id="ref4"><div class="ri" style="background:#FDECEC">📄</div><div><b>Fuji family clinical guide — indications &amp; protocols</b><span>PDF · technique guide · demo link</span></div><a href="#" onclick="toast('⬇ PDF (demo — wire to the real guide)');return false">Download →</a></div>
+    </div>
+
+    <!-- CHAT CONTINUATION -->
+    <div class="chat" id="chat">
+      <div id="chatlog"></div>
+      <div class="chatbar">
+        <input id="chatIn" placeholder="✦ Ask another question about GC products, clinical techniques, or protocols…" onkeydown="if(event.key==='Enter')sendChat()">
+        <button onclick="sendChat()">➤</button>
+      </div>
+    </div>
+
+    <!-- NORMAL RESULTS -->
+    <div id="normalres">
+      <div class="resbar"><span id="resCount">Showing 9 results for "glass ionomer technology and clinical benefits"</span><span style="display:flex;gap:10px;align-items:center"><span class="pill">⚙ Filters · 2</span>Sort by: <b>Relevance ▾</b></span></div>
+      <div class="rrow" data-cat="faq" id="faqrow"><div class="rtop"><span class="rtype">FAQ</span><span class="tag">Restoratives</span></div><h4><a href="#">What is Glass Ionomer technology and what are its benefits?</a></h4><p>GC's Glass Ionomer Cement (GIC) technology is the cornerstone of modern minimum intervention dentistry. Unlike composite resins, glass ionomers form true chemical bonds with tooth structure…</p><div class="rmeta"><span># 9899</span><span>📅 25 Mar 2026</span><span>Help Center</span></div></div>
+      <div class="rrow" data-cat="product"><div class="rtop"><span class="rtype">PRODUCT</span><span class="tag">Glass hybrid</span></div><h4><a href="https://www.gc.dental/europe/products/equiaforte-ht" target="_blank">EQUIA Forte HT — bulk-fill glass hybrid restorative</a></h4><p>Long-term restorative system for Class I, II and V — with 5-year RCT evidence in load-bearing cavities and EQUIA Forte Coat protection.</p><div class="rmeta"><span>gc.dental/europe</span></div></div>
+      <div class="rrow" data-cat="product"><div class="rtop"><span class="rtype">PRODUCT</span><span class="tag">Luting</span></div><h4><a href="#">FujiCEM Evolve — resin-modified glass ionomer cement</a></h4><p>One-step luting with optimal adhesion to zirconia, low film thickness and easy tack-cure clean-up.</p><div class="rmeta"><span>gc.dental/europe</span></div></div>
+      <div class="rrow" data-cat="pdf"><div class="rtop"><span class="rtype pdf">PDF</span><span class="tag">Evidence</span></div><h4><a href="#">5-year RCT summary — glass hybrid vs composite in Class II</a></h4><p>Clinical evidence summary: non-inferiority of the glass hybrid system in load-bearing posterior restorations.</p><div class="rmeta"><span>PDF · 12 pp</span><span>Clinical affairs</span></div></div>
+      <div class="rrow" data-cat="pdf"><div class="rtop"><span class="rtype pdf">PDF</span><span class="tag">IFU</span></div><h4><a href="#">EQUIA Forte HT — Instructions for Use (multi-language)</a></h4><p>Official IFU covering indications, dosage, working and setting times.</p><div class="rmeta"><span>PDF</span><span>Resources &amp; IFU</span></div></div>
+      <div class="rrow" data-cat="faq"><div class="rtop"><span class="rtype">FAQ</span><span class="tag">Compatibility</span></div><h4><a href="#">Are GC glass ionomers compatible with fluoride varnishes and other brands?</a></h4><p>Yes — the fluoride recharge mechanism works with standard fluoride sources including toothpaste, rinses and professional applications…</p><div class="rmeta"><span># 9903</span><span>📅 25 Mar 2026</span></div></div>
+      <div class="rrow" data-cat="ev"><div class="rtop"><span class="rtype ev">EVENT</span><span class="tag">Webinar</span></div><h4><a href="#">Minimum Intervention in practice — GIC protocols webinar</a></h4><p>Live session with Q&amp;A · Oct 21, 2026 · free registration.</p><div class="rmeta"><span>🕗 60 min</span><span>Online</span></div></div>
+      <div class="rrow" data-cat="news"><div class="rtop"><span class="rtype news">NEWS</span><span class="tag">Science</span></div><h4><a href="#">A century of glass-ionomer science — from Fuji I to glass hybrids</a></h4><p>R&amp;D interview on fluoride-release chemistry and what "recharge" really means.</p><div class="rmeta"><span>📅 Aug 2026</span><span>Newsroom</span></div></div>
+      <div class="rrow" data-cat="product"><div class="rtop"><span class="rtype">PRODUCT</span><span class="tag">Preventive</span></div><h4><a href="#">Fuji TRIAGE — protective glass ionomer sealant</a></h4><p>High fluoride release for erupting molars, hypersensitive surfaces and root protection.</p><div class="rmeta"><span>gc.dental/europe</span></div></div>
+    </div>
+  </main>
+</div>
+
+<div class="still"><div class="wrap">
+  <h2>Still have questions?</h2>
+  <p>Our dedicated support team is here to help — contact us for personalised assistance or try the AI-powered chat.</p>
+  <button class="btn" onclick="toast('📞 Support call flow (demo)')">📞 Call support</button>
+  <button class="btn outline" onclick="toast('✉️ Email form (demo)')">✉️ Email us</button>
+</div></div>
+
+</section>
+
+<footer><div class="wrap"><span>© GC CORPORATION 2026 — Site search with AI mode · DLS prototype</span><span>Grounded-or-silent · IFUs surfaced, never paraphrased</span></div></footer>
+<div class="toast" id="toast">—</div>
+
+<script>
+/* view router + search modal */
+let smode='normal';
+function goHome(){document.body.dataset.v='home';scrollTo(0,0);}
+function openSearch(){document.getElementById('smodal').classList.add('open');document.getElementById('mq').focus();}
+function closeSearch(){document.getElementById('smodal').classList.remove('open');}
+function smMode(m){smode=m;
+ document.getElementById('smNormal').classList.toggle('on',m==='normal');
+ document.getElementById('smAI').classList.toggle('on',m==='ai');
+ document.getElementById('mgo').innerHTML= m==='ai'?'✦ Ask AI':'Search';}
+function mpreset(q){document.getElementById('mq').value=q;}
+function modalGo(){const q=document.getElementById('mq').value.trim();if(!q)return;
+ closeSearch();document.body.dataset.v='search';
+ document.getElementById('q').value=q;setMode(smode);runSearch();}
+/* mode + search */
+function setMode(m){document.body.dataset.mode=m;
+ document.getElementById('mNormal').classList.toggle('on',m==='normal');
+ document.getElementById('mAI').classList.toggle('on',m==='ai');
+ document.getElementById('normalres').style.display= m==='ai'?'none':'block';
+ document.getElementById('goBtn').innerHTML= m==='ai'?'✦ Ask AI':'Search';
+ if(m==='ai')document.getElementById('aiQ').textContent='"'+document.getElementById('q').value+'"';
+ scrollTo(0,0);}
+function runSearch(){const q=document.getElementById('q').value;
+ if(document.body.dataset.mode==='ai'){document.getElementById('aiQ').textContent='"'+q+'"';toast('✦ AI answer refreshed for: '+q+' (demo — canned overview)');}
+ else{document.getElementById('resCount').textContent='Showing 9 results for "'+q+'"';toast('🔍 Results refreshed (demo)');}}
+function preset(q){document.getElementById('q').value=q;runSearch();}
+/* category filter */
+function filterCat(li){document.querySelectorAll('.cats li').forEach(x=>x.classList.remove('on'));li.classList.add('on');
+ const c=li.dataset.cat;let n=0;
+ document.querySelectorAll('#normalres .rrow').forEach(r=>{const show=c==='all'||r.dataset.cat===c;r.style.display=show?'block':'none';if(show)n++;});
+ document.getElementById('resCount').textContent='Showing '+n+' results';}
+/* source highlight */
+function hlRef(i){document.querySelectorAll('.ref').forEach(r=>r.classList.remove('hl'));
+ const el=document.getElementById('ref'+i);el.classList.add('hl');el.scrollIntoView({behavior:'smooth',block:'center'});
+ setTimeout(()=>el.classList.remove('hl'),2500);}
+/* copy */
+function copyAns(){const txt=document.querySelector('.aicard .ans').textContent;
+ navigator.clipboard&&navigator.clipboard.writeText(txt);toast('⧉ Overview copied to clipboard');}
+/* chat */
+const QA={
+ 'what clinical studies support long-term gic durability?':{a:'When a glass ionomer restoration is exposed to fluoride from toothpaste, mouth rinse, or professional fluoride applications, it absorbs and stores fluoride ions within its matrix. When oral pH drops due to acid attack, the material releases this stored fluoride into the surrounding tooth structure and plaque — inhibiting demineralisation and actively promoting remineralisation of adjacent enamel and dentin. Studies show GIC fluoride reservoirs can be recharged multiple times over the restoration\u2019s lifetime, and 5-year randomised controlled data supports glass hybrids in load-bearing Class II restorations.',s:[1,3]},
+ 'which gc products use glass ionomer technology?':{a:'The family spans restorative (EQUIA Forte HT, Fuji IX GP), luting (FujiCEM Evolve, Fuji PLUS), base/liner (Fuji LINING), preventive (Fuji TRIAGE) and orthodontic (Fuji ORTHO) applications — all built on GC\u2019s glass-ionomer chemistry with active fluoride release.',s:[2,4]},
+ 'how does glass ionomer compare to composite resin?':{a:'Composites offer higher initial flexural strength and polishability; glass ionomers offer true chemical adhesion without etching, fluoride release and recharge, moisture tolerance during placement, and thermal expansion close to tooth structure. Modern glass hybrids narrow the strength gap — 5-year RCT data shows non-inferiority in Class II load-bearing cavities. Choice depends on caries risk, isolation and indication.',s:[1,3]},
+ 'what are the clinical steps for equia forte ht?':{a:'1) Clean the cavity and condition 10s with CAVITY CONDITIONER · 2) rinse and gently dry — keep dentin moist · 3) mix the capsule 10s and bulk-fill within 1\u203210 working time · 4) contour before set (~2\u203230 from mixing) · 5) apply EQUIA Forte Coat and light-cure 20s. Always confirm against the current IFU — the IFU is the authoritative document.',s:[2]},
+ '_default':{a:'Grounded answer unavailable for that question in this demo. In production the assistant answers only from the GC Knowledge Base — and stays silent rather than guessing. Try one of the follow-up chips, or open the referenced documents above.',s:[]}
+};
+function sendPrompt(q){document.getElementById('chatIn').value=q;sendChat();}
+function sendChat(){const inp=document.getElementById('chatIn');const q=inp.value.trim();if(!q)return;inp.value='';
+ const log=document.getElementById('chatlog');const t=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+ log.insertAdjacentHTML('beforeend','<div class="msg user"><div class="bubble">'+q.replace(/</g,'&lt;')+'</div><div class="av">👤</div></div><div class="msgmeta" style="text-align:right">'+t+'</div>');
+ const hit=QA[q.toLowerCase()]||QA['_default'];
+ setTimeout(()=>{
+  log.insertAdjacentHTML('beforeend','<div class="msg ai"><div class="av">✦</div><div class="bubble">'+hit.a+'</div></div>'+
+   (hit.s.length?'<div class="bsrc">'+hit.s.map(i=>'<button onclick="hlRef('+i+')">Source '+i+'</button>').join('')+'</div>':'')+
+   '<div class="msgmeta">'+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})+'</div>');
+  log.lastElementChild.scrollIntoView({behavior:'smooth',block:'end'});},700);}
+function toast(m){const T=document.getElementById('toast');T.textContent=m;T.classList.add('show');setTimeout(()=>T.classList.remove('show'),2600);}
+</script>
+</body></html>
